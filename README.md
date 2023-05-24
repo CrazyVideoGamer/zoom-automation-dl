@@ -1,8 +1,9 @@
 pywingui reference:
-- use Accessibility Insights For Windows to locate elements on windows gui (other options: https://pywinauto.readthedocs.io/en/latest/getting_started.html#gui-objects-inspection-spy-tools)
-- use child_elements (more options) or getattribute (dialog["whatever"] -> .child_elements(title="whatever")) to locate elements
-  - options for child_elements, when multiple elements have that text:
-  - Note: "control type" in windows terminlogy is the same as "class" in pywingui terminlogy
+* use Accessibility Insights For Windows to locate elements on windows gui (other options: https://pywinauto.readthedocs.io/en/latest/getting_started.html#gui-objects-inspection-spy-tools)
+  * **IMPORTANT**: the class name in the inspector may not be the same in pywingui terminlogy; use print_control_identifiers to check.
+* use child_elements (more options) or getattribute (dialog["whatever"] -> .child_elements(title="whatever")) to locate elements
+  * options for child_elements, when multiple elements have that text:
+  * Note: "control type" in windows terminlogy is the same as "class" in pywingui terminlogy
 * class_name Elements with this window class
 * class_name_re Elements whose class matches this regular expression
 * parent Elements that are children of this
