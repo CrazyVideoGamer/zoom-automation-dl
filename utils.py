@@ -2,9 +2,10 @@ import pathlib
 from time import sleep
 
 import pyautogui
+#from pywinauto.application import Application
+import uiautomation as auto
 import win32com.client
 import win32gui
-from pywinauto.application import Application
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -38,7 +39,7 @@ def download_complete(driver: WebDriver):
       """)
   WebDriverWait(driver, 1800).until(inner)
 
-def download_recording(driver: WebDriver, window_handle, links: str, download_dir: pathlib.Path, prefix: list):
+def download_recording(driver: WebDriver, window_handle, links: str, download_dir: pathlib.Path, prefix: list, backend="pywinauto"):
   for index, link in enumerate(links):
     driver.get(link)
     WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#vjs_video_3")))
@@ -63,24 +64,54 @@ def download_recording(driver: WebDriver, window_handle, links: str, download_di
     
     filename = prefix + " " + str(index + 1)
 
-    app = Application(backend="win32").connect(path=r"C:\Program Files (x86)\Google\Chrome\Application", timeout=10)
+    if backend == "pywinauto":
+      app = Application(backend="win32").connect(path=r"C:\Program Files (x86)\Google\Chrome\Application", timeout=10)
 
-    dialog = app.window(title="Save As")
-    if not dialog.exists(10, 0.4):
-      raise TimeoutError("Timeout expired (10s): Save As window did not open.")
+      dialog = app.window(title="Save As")
+      if not dialog.exists(10, 0.4):
+        raise TimeoutError("Timeout expired (10s): Save As window did not open.")
 
-    dialog.set_focus()
-    pyautogui.typewrite(filename)
+      dialog.set_focus()
+      pyautogui.typewrite(filename)
 
-    address = dialog.child_window(title_re="Address: [a-zA-Z]+", class_name="ToolbarWindow32")
-    dialog.set_focus()
-    address.click()
-    pyautogui.write(str(download_dir.parent.resolve()))
-    pyautogui.press("enter")
+      address = dialog.child_window(title_re="Address: [a-zA-Z]+", class_name="ToolbarWindow32")
+      dialog.set_focus()
+      address.click()
+      pyautogui.write(str(download_dir.parent.resolve()))
+      pyautogui.press("enter")
 
-    save_button = dialog["Save"]
-    dialog.set_focus()
-    save_button.click()
+      save_button = dialog["Save"]
+      dialog.set_focus()
+      save_button.click()
+    else if backend == "uiautomation":
+      # time = 0
+      # while True:
+      #   if time > 10:
+      #     raise TimeoutError("Timeout expired (10s): Save As window did not open.")
+
+      #   title = pyautogui.getActiveWindowTitle()
+      #   if title == "Save As":
+      #     break
+      #   sleep(0.4)
+      #   time += 0.4
+
+      dialog = auto.WindowControl(searchDepth=2, Name="Save As")
+      if not dialog.Exists(10, 0.4):
+        raise TimeoutError("Timeout expired (10s): Save As window did not open.")
+
+      focus_window(dialog.NativeWindowHandle, False)
+      pyautogui.typewrite(filename)
+
+      address = dialog.ToolBarControl(searchDepth=6, RegexName="Address: [a-zA-Z]+")
+      focus_window(dialog.NativeWindowHandle, False)
+      pyautogui.click(address.BoundingRectangle.left, address.BoundingRectangle.top)
+      pyautogui.typewrite(str(download_dir.resolve()))
+      pyautogui.press("enter")
+
+      save = dialog.ButtonControl(searchDepth=1, Name="Save")
+      focus_window(dialog.NativeWindowHandle, False)
+      pyautogui.click(save.BoundingRectangle.xcenter(), save.BoundingRectangle.ycenter())
+
 
     download_complete(driver)
     print(f'"{filename}" download complete.')
