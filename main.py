@@ -56,6 +56,10 @@ except selenium_exceptions.NoSuchWindowException:
   print("Error: browser was closed during execution.", file=sys.stderr)
 except TimeoutError as e:
   print(str(e), file=sys.stderr)
+except Exception as e:
+  print("Unexpected error:", str(e), file=sys.stderr)
 finally:
   driver.quit()
+  for tmp in Path(".").glob("*.tmp"):
+    tmp.unlink()
   quit(1)
