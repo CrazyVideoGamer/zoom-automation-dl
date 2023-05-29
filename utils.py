@@ -3,9 +3,10 @@ import sys
 from time import sleep
 
 import pyautogui
+#from pywinauto.application import Application
+import uiautomation as auto
 import win32com.client
 import win32gui
-from pywinauto.application import Application
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -13,12 +14,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def focus_window(window_handle):
+def focus_window(window_handle, chrome=True):
   win32com.client.Dispatch("WScript.Shell").SendKeys("%")
+  pyautogui.press("esc")
   win32gui.SetForegroundWindow(window_handle)
 
 def replace_existing(path: pathlib.Path): 
   path.unlink(missing_ok=True)
+  (path.parent / f"{path.name}.crdownload").unlink(missing_ok=True)
 
 def download_complete(driver: WebDriver):
   def inner(driver):
@@ -59,21 +62,35 @@ def download_recording(driver: WebDriver, window_handle, links: str, download_di
     pyautogui.press('down')
     pyautogui.press('enter')
     
-    sleep(0.4)
-
     filename = prefix + " " + str(index + 1)
 
-    app = Application(backend="win32").connect(path=r"C:\Program Files (x86)\Google\Chrome\Application", timeout=10)
-    dialog = app.window(title="Save As")
+    # time = 0
+    # while True:
+    #   if time > 10:
+    #     raise TimeoutError("Timeout expired (10s): Save As window did not open.")
+
+    #   title = pyautogui.getActiveWindowTitle()
+    #   if title == "Save As":
+    #     break
+    #   sleep(0.4)
+    #   time += 0.4
+
+    dialog = auto.WindowControl(searchDepth=2, Name="Save As")
+    if not dialog.Exists(10, 0.4):
+      raise TimeoutError("Timeout expired (10s): Save As window did not open.")
+
+    focus_window(dialog.NativeWindowHandle, False)
     pyautogui.typewrite(filename)
-    sleep(0.6)
-    address = dialog.child_window(title="Address: Downloads", class_name="ToolbarWindow32")
-    address.click()
-    pyautogui.write(str(download_dir.parent.resolve()))
+
+    address = dialog.ToolBarControl(searchDepth=6, RegexName="Address: [a-zA-Z]+")
+    focus_window(dialog.NativeWindowHandle, False)
+    pyautogui.click(address.BoundingRectangle.left, address.BoundingRectangle.top)
+    pyautogui.typewrite(str(download_dir.resolve()))
     pyautogui.press("enter")
 
-    save_button = dialog["Save"]
-    save_button.click()
+    save = dialog.ButtonControl(searchDepth=1, Name="Save")
+    focus_window(dialog.NativeWindowHandle, False)
+    pyautogui.click(save.BoundingRectangle.xcenter(), save.BoundingRectangle.ycenter())
 
     download_complete(driver)
     print(f'"{filename}" download complete.')
