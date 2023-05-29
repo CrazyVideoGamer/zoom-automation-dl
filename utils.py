@@ -67,7 +67,7 @@ def download_recording(driver: WebDriver, window_handle, links: str, download_di
     dialog = app.window(title="Save As")
     pyautogui.typewrite(filename)
     sleep(0.6)
-    address = dialog.child_window(title="Address: Downloads", class_name="ToolbarWindow32")
+    address = dialog.child_window(title_re="Address: [a-zA-Z]+", class_name="ToolbarWindow32")
     address.click()
     pyautogui.write(str(download_dir.parent.resolve()))
     pyautogui.press("enter")
