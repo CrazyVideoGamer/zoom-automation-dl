@@ -13,12 +13,15 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def focus_window(window_handle):
+def focus_window(window_handle, chrome=True):
   win32com.client.Dispatch("WScript.Shell").SendKeys("%")
+  if chrome:
+    pyautogui.press("esc")
   win32gui.SetForegroundWindow(window_handle)
 
 def replace_existing(path: pathlib.Path): 
   path.unlink(missing_ok=True)
+  (path.parent / f"{path.name}.crdownload").unlink(missing_ok=True)
 
 def download_complete(driver: WebDriver):
   def inner(driver):
@@ -59,20 +62,25 @@ def download_recording(driver: WebDriver, window_handle, links: str, download_di
     pyautogui.press('down')
     pyautogui.press('enter')
     
-    sleep(0.4)
-
     filename = prefix + " " + str(index + 1)
 
     app = Application(backend="win32").connect(path=r"C:\Program Files (x86)\Google\Chrome\Application", timeout=10)
+
     dialog = app.window(title="Save As")
+    if not dialog.exists(10, 0.4):
+      raise TimeoutError("Timeout expired (10s): Save As window did not open.")
+
+    dialog.set_focus()
     pyautogui.typewrite(filename)
-    sleep(0.6)
+
     address = dialog.child_window(title_re="Address: [a-zA-Z]+", class_name="ToolbarWindow32")
+    dialog.set_focus()
     address.click()
     pyautogui.write(str(download_dir.parent.resolve()))
     pyautogui.press("enter")
 
     save_button = dialog["Save"]
+    dialog.set_focus()
     save_button.click()
 
     download_complete(driver)

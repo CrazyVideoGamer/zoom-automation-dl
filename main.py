@@ -54,5 +54,10 @@ try:
   download_recording(driver, window_handle, args.links, args.output, args.name)
 except selenium_exceptions.NoSuchWindowException:
   print("Error: browser was closed during execution.", file=sys.stderr)
+except TimeoutError as e:
+  print(str(e), file=sys.stderr)
+except Exception as e:
+  print("Unexpected error:", str(e), file=sys.stderr)
 finally:
   driver.quit()
+  quit(1)
