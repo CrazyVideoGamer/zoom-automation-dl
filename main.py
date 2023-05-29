@@ -1,7 +1,6 @@
 import argparse
 import sys
 from pathlib import Path
-from time import sleep
 from urllib.parse import urlparse
 
 import win32gui
@@ -60,4 +59,6 @@ except Exception as e:
   print("Unexpected error:", str(e), file=sys.stderr)
 finally:
   driver.quit()
+  for tmp in Path(".").glob("*.tmp"):
+    tmp.unlink()
   quit(1)
