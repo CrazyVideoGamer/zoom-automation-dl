@@ -9,6 +9,7 @@ from selenium.common import exceptions as selenium_exceptions
 from selenium.webdriver.chrome.service import Service
 
 from utils import download_recording, replace_existing
+from utils import DownloadInterruptedError, DownloadMissingTimeoutError, DownloadsPageTimeoutError
 
 # from selenium.webdriver.chrome.options import Options
 
@@ -20,12 +21,16 @@ def URL(arg):
 
 parser = argparse.ArgumentParser(
   prog="zoom-dl",
-  description="Automates the zoom recording downloading process"
+  description="Automates the Zoom recording download process",
+  formatter_class=argparse.ArgumentDefaultsHelpFormatter
 )
 
 parser.add_argument("links", type=URL, nargs="+", help="links to download")
-parser.add_argument("--name", "-n", type=str, nargs=1, default="Recording", help="the name prefix for each file (the filename will be appended by a number starting from 1)")
-parser.add_argument("--output", "-o", type=Path, nargs=1, default=Path("."), help="Video output directory")
+parser.add_argument("--name", "-n", type=str, default="Recording", help="the name prefix for each file (the filename will be appended by a number starting from 1)")
+parser.add_argument("--output", "-o", type=Path, default=Path("."), help="Video output directory")
+parser.add_argument("--timeout", "-t", type=float, default=1800, help="Maximum duration (seconds) for recording download until timeout")
+parser.add_argument("--backend", "-b", type=str, choices={"pywinauto", "uiautomation"}, default="uiautomation", help="Backend to use (choose from 'pywinauto', 'uiautomation')")
+parser.add_argument("--window-activation", action=argparse.BooleanOptionalAction, default=True, help="Enable feature to activate unfocused browser/dialogs that need to be in the foreground to run properly")
 
 args = parser.parse_args()
 
@@ -47,18 +52,36 @@ options.add_experimental_option('excludeSwitches', ['enable-logging'])
 service = Service(executable_path="./ChromeDriver/chromedriver.exe")
 
 driver = webdriver.Chrome(options=options, service=service)
+
 window_handle = win32gui.GetForegroundWindow()
 
+options = {
+  "download_dir": args.output,
+  "prefix": args.name,
+  "download_timeout": args.timeout,
+  "backend": args.backend
+}
+
+if args.window_activation:
+  options["window_handle"] = window_handle
+
 try:
-  download_recording(driver, window_handle, args.links, args.output, args.name)
+  download_recording(driver, args.links, options)
 except selenium_exceptions.NoSuchWindowException:
-  print("Error: browser was closed during execution.", file=sys.stderr)
+  print("BrowserError: browser was closed during execution", file=sys.stderr)
+except (DownloadInterruptedError, DownloadMissingTimeoutError, DownloadsPageTimeoutError) as e:
+  print(f"{type(e).__name__} {str(e)}", file=sys.stderr)
 except TimeoutError as e:
-  print(str(e), file=sys.stderr)
+  print(f"TimeoutError: {str(e)}", file=sys.stderr)
 except Exception as e:
   print("Unexpected error:", str(e), file=sys.stderr)
-finally:
+else:
   driver.quit()
   for tmp in Path(".").glob("*.tmp"):
     tmp.unlink()
-  quit(1)
+  quit(0)
+
+driver.quit()
+for tmp in Path(".").glob("*.tmp"):
+  tmp.unlink()
+quit(1)
