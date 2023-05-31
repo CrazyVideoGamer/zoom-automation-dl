@@ -70,7 +70,7 @@ try:
 except selenium_exceptions.NoSuchWindowException:
   print("BrowserError: browser was closed during execution", file=sys.stderr)
 except (DownloadInterruptedError, DownloadMissingTimeoutError, DownloadsPageTimeoutError) as e:
-  print(f"{type(e).__name__} {str(e)}", file=sys.stderr)
+  print(f"{type(e).__name__}: {str(e)}", file=sys.stderr)
 except TimeoutError as e:
   print(f"TimeoutError: {str(e)}", file=sys.stderr)
 except Exception as e:

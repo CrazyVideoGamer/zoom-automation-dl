@@ -49,7 +49,7 @@ def download_complete(driver: WebDriver, timeout: float = 1800):
     try:
       WebDriverWait(driver, 5).until(wait_until_not_missing)
     except:
-      raise DownloadMissingTimeoutError('Download missing on chrome://downloads (timeout: 5 sec) (perhaps user cancelled "Save As" dialog box?)')
+      raise DownloadMissingTimeoutError('Download missing on chrome://downloads (timeout: 5 sec) (perhaps user cancelled Save As dialog box?)')
 
     state = driver.execute_script("""
       let items = document.querySelector('downloads-manager')
@@ -62,7 +62,7 @@ def download_complete(driver: WebDriver, timeout: float = 1800):
     elif state == "COMPLETE":
       return True
     elif state == "CANCELLED" or state == "PAUSED":
-      raise DownloadInterruptedError("Download was unexpectedly aborted (perhaps by user?)")
+      raise DownloadInterruptedError("Download was unexpectedly paused/cancelled (perhaps by user?)")
     else:
       raise Exception(f"Unexpected state: \"{state}\"")
   
@@ -73,14 +73,14 @@ def navigate_file_explorer_pywinauto(filename: str, download_dir: pathlib.Path, 
 
   app = Application(backend="win32").connect(path=r"C:\Program Files (x86)\Google\Chrome\Application", timeout=10)
 
-  dialog = app.window(title="Save As")
+  dialog = app.window(class_name="#32770", title="Save As")
   if not dialog.exists(10, 0.4):
-    raise TimeoutError("Timeout expired (10s): Save As window did not open.")
+    raise TimeoutError("Timeout expired (10s): Save As dialog box did not open.")
 
   activate_windows and dialog.set_focus()
   pyautogui.typewrite(filename)
 
-  address = dialog.child_window(title_re="Address: [a-zA-Z]+", class_name="ToolbarWindow32")
+  address = dialog.child_window(class_name="ToolbarWindow32", title_re="Address: [a-zA-Z]+")
   activate_windows and dialog.set_focus()
   address.click()
   pyautogui.write(str(download_dir.parent.resolve()))
@@ -93,7 +93,7 @@ def navigate_file_explorer_pywinauto(filename: str, download_dir: pathlib.Path, 
 def navigate_file_explorer_uiautomation(filename: str, download_dir: pathlib.Path, activate_windows: bool = False):
   import uiautomation as auto
 
-  dialog = auto.WindowControl(searchDepth=2, Name="Save As")
+  dialog = auto.WindowControl(searchDepth=2, ClassName="#32770", Name="Save As")
   if not dialog.Exists(10, 0.4):
     raise TimeoutError("Timeout expired (10s): Save As window did not open.")
 
@@ -101,7 +101,7 @@ def navigate_file_explorer_uiautomation(filename: str, download_dir: pathlib.Pat
 
   pyautogui.typewrite(filename)
 
-  address = dialog.ToolBarControl(searchDepth=6, RegexName="Address: [a-zA-Z]+")
+  address = dialog.ToolBarControl(searchDepth=6, ClassName="ToolbarWindow32", RegexName="Address: [a-zA-Z]+")
   activate_windows and focus_window(dialog.NativeWindowHandle)
   pyautogui.click(address.BoundingRectangle.left, address.BoundingRectangle.top)
   pyautogui.typewrite(str(download_dir.resolve()))
