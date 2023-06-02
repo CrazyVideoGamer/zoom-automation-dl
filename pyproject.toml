@@ -1,0 +1,23 @@
+[project]
+name = "zoom-dl"
+version = "0.0.1"
+authors = [
+  { name="Jason", email="crazyvideogamez.help@gmail.com" },
+]
+description = "Automates the zoom recording downloading process!"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows :: Windows 10"
+]
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.urls]
+"Homepage" = "https://github.com/CrazyVideoGamer/zoom-dl"
+"Bug Tracker" = "https://github.com/CrazyVideoGamer/zoom-dl/issues"
