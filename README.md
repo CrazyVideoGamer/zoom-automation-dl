@@ -1,6 +1,8 @@
-# Zoom-dl
+# Zoom Recording Downloader
+
 🤖Automates zoom recording downloading with selenium
 
+- Doesn't need any cookies or any manual searching to find the download link!
 
 ```
 usage: zoom-dl [-h] [--name NAME] [--output OUTPUT] [--timeout TIMEOUT] [--backend {pywinauto,uiautomation}]
