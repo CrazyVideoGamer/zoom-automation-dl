@@ -1,5 +1,5 @@
 [project]
-name = "zoom-dl"
+name = "zoom-recording-downloader"
 version = "0.0.1"
 authors = [
   { name="Jason", email="crazyvideogamez.help@gmail.com" },
@@ -19,5 +19,5 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.urls]
-"Homepage" = "https://github.com/CrazyVideoGamer/zoom-dl"
-"Bug Tracker" = "https://github.com/CrazyVideoGamer/zoom-dl/issues"
+"Homepage" = "https://github.com/CrazyVideoGamer/zoom-recording-downloader"
+"Bug Tracker" = "https://github.com/CrazyVideoGamer/zoom-recording-downloader/issues"
